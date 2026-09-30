@@ -4,7 +4,7 @@ Usage:
     python -m src.cli
 """
 
-from src.chat import RAGChat
+from chat import RAGChat
 
 
 def main():
