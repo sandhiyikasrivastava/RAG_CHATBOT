@@ -1,7 +1,7 @@
 """Conversation memory: keep last N messages and rewrite follow-up questions."""
 
 from typing import List, Dict, Any
-from src.config import MEMORY_LIMIT
+from config import MEMORY_LIMIT
 
 
 class ConversationMemory:
