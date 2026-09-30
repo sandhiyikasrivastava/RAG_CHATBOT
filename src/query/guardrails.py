@@ -75,6 +75,28 @@ def has_sufficient_context(
     return max(similarities) >= threshold
 
 
+def is_opinionated_question(question: str) -> bool:
+    """Check if a question is asking for investment advice.
+
+    Args:
+        question: The user's question.
+
+    Returns:
+        True if the question is opinionated/asking for advice.
+    """
+    opinionated_patterns = [
+        "should i buy", "should i sell", "should i invest",
+        "is it good to", "is it bad to", "should i purchase",
+        "should i redeem", "should i switch", "best fund",
+        "which fund should", "what should i do", "give me advice",
+        "recommend", "suggestion", "opinion", "worth buying",
+        "good investment", "bad investment", "will i get profit",
+        "can i earn", "how much will i get", "guaranteed returns",
+    ]
+    question_lower = question.lower()
+    return any(pattern in question_lower for pattern in opinionated_patterns)
+
+
 def check_guardrails(
     question: str,
     retrieved_chunks: List[dict],
@@ -92,6 +114,14 @@ def check_guardrails(
     Returns:
         None if all checks pass, otherwise a refusal message string.
     """
+    # Check 0: Opinionated/advice questions
+    if is_opinionated_question(question):
+        return (
+            "I can only answer factual questions about HDFC mutual fund schemes. "
+            "I cannot provide investment advice. Please consult a financial advisor "
+            "for personalized recommendations."
+        )
+
     # Check 1: Off-topic
     on_topic, best_sim = is_on_topic(question, all_chunk_embeddings, embedder)
     if not on_topic:

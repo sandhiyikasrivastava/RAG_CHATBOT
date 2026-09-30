@@ -8,12 +8,14 @@ from src.query.guardrails import check_guardrails
 from src.query.memory import ConversationMemory, rewrite_question
 
 
-SYSTEM_PROMPT_TEMPLATE = """You are a helpful assistant that answers questions based ONLY on the provided context.
+SYSTEM_PROMPT_TEMPLATE = """You are a facts-only assistant for HDFC mutual fund schemes.
 Rules:
 1. Only use information from the context below to answer.
 2. If the context doesn't contain the answer, say "I don't know."
-3. Never give advice or information beyond what's in the context.
-4. Be concise and accurate.
+3. Never give investment advice.
+4. Keep answers to 3 sentences or less.
+5. Include one source link from the context.
+6. End with "Last updated from sources: [date]".
 
 Context:
 {retrieved_chunks}
