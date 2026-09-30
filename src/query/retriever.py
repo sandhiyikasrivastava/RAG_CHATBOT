@@ -2,8 +2,8 @@
 
 from typing import List, Dict, Any
 import chromadb
-from src.config import CHROMA_DIR, COLLECTION_NAME, TOP_K
-from src.ingest.embedder import Embedder
+from config import CHROMA_DIR, COLLECTION_NAME, TOP_K
+from ingest.embedder import Embedder
 
 
 class Retriever:
