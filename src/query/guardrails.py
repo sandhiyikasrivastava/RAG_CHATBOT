@@ -2,8 +2,8 @@
 
 from typing import List, Tuple, Optional
 import numpy as np
-from src.config import SIMILARITY_THRESHOLD
-from src.ingest.embedder import Embedder
+from config import SIMILARITY_THRESHOLD
+from ingest.embedder import Embedder
 
 
 def compute_similarity(query_embedding: List[float], chunk_embedding: List[float]) -> float:
