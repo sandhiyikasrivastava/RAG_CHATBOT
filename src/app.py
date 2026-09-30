@@ -5,7 +5,7 @@ Usage:
 """
 
 import streamlit as st
-from src.chat import RAGChat
+from chat import RAGChat
 
 # Page config
 st.set_page_config(
