@@ -2,7 +2,7 @@
 
 from typing import List
 from sentence_transformers import SentenceTransformer
-from src.config import EMBEDDING_MODEL
+from config import EMBEDDING_MODEL
 
 
 class Embedder:
