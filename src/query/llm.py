@@ -24,7 +24,7 @@ class LLMClient:
             except (KeyError, FileNotFoundError):
                 self.api_key = None
 
-        self.model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+        self.model = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 
         if not self.api_key:
             raise ValueError(
