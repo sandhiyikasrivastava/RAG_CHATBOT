@@ -5,9 +5,9 @@ Usage:
 """
 
 import chromadb
-from src.config import CHROMA_DIR, COLLECTION_NAME
-from src.ingest.embedder import Embedder
-from src.query.guardrails import is_on_topic, has_sufficient_context, check_guardrails
+from config import CHROMA_DIR, COLLECTION_NAME
+from ingest.embedder import Embedder
+from query.guardrails import is_on_topic, has_sufficient_context, check_guardrails
 
 
 def main():
