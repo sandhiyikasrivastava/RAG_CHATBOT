@@ -1,11 +1,11 @@
 """Main RAG pipeline: combines retrieval + guardrails + LLM."""
 
 from typing import List, Dict, Any, Optional
-from src.ingest.embedder import Embedder
-from src.query.retriever import Retriever
-from src.query.llm import LLMClient
-from src.query.guardrails import check_guardrails
-from src.query.memory import ConversationMemory, rewrite_question
+from ingest.embedder import Embedder
+from query.retriever import Retriever
+from query.llm import LLMClient
+from query.guardrails import check_guardrails
+from query.memory import ConversationMemory, rewrite_question
 
 
 SYSTEM_PROMPT_TEMPLATE = """You are a facts-only assistant for HDFC mutual fund schemes.
