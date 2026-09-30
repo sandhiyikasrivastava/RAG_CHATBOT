@@ -1,107 +1,119 @@
-Build a RAG Chatbot with an AI Coding Agent
-Works with: Cursor or OpenCode. Prompts use @file references, which both tools support.
-Before class: setup
-Install Cursor and Python 3.10+.
-Create an empty project folder, e.g. rag-chatbot, and open it in your tool.
-Create a free Groq account at https://console.groq.com/keys and generate an API key. Keep it private.
-Create a GitHub account if you don't have one.
-In the project folder, create ProblemStatement.txt and paste in the text from the "Problem Statement" tab.
+Source: https://groww.in/mutual-funds/hdfc-large-cap-fund-direct-growth
 
-Data Ingestion :- Loading → Chunking → Embedding —> Vector Space
-Data Retrieval :- Query → embedding → find chunk in vector space → (Augmentation)LLM + Chunk + system prompt → Generate Answer
+HDFC Large Cap Fund Direct Growth
+Equity | Large Cap | Very High Risk
+NAV: 29 Sep '26 - Rs. 1,165.78
+Min. for SIP: Rs. 100
+Fund size (AUM): Rs. 39,933.36 Cr
+Expense ratio: 1.03%
+Rating: 4
 
-Tech Decisions we took in class
+Exit Load: 1% if redeemed within 1 year
+Stamp duty on investment: 0.005% (from July 1st, 2020)
 
-Embedding model: sentence-transformers/all-MiniLM-L6-v2. It runs locally, needs no API key, and produces 384-dimension vectors. Use the same model to embed both the chunks and the user's question.
+Tax implication: If you redeem within one year, returns are taxed at 20%. If you redeem after one year, returns exceeding Rs 1.25 lakh in a financial year are taxed at 12.5%.
 
-Chunking strategy: the AI agent (Cursor, OpenCode, or Claude Code) decides. Before it writes any code, it should inspect the data and propose a strategy, say why it suits this data, and specify chunk size, overlap, and what metadata each chunk keeps. Save all chunks to a readable .txt file so they can be inspected.
+Investment Objective: The scheme seeks to provide long-term capital appreciation/income by investing predominantly in Large-Cap companies.
+Fund benchmark: NIFTY 100 Total Return Index
+Fund house: HDFC Mutual Fund
+Launch Date: 10 Dec 1999
 
-Vector DB: ChromaDB, persisted to disk, so ingestion runs once and not on every restart.
+Fund Manager: Rahul Baijal (Jul 2022 - Present), Dhruv Muchhal (Jun 2023 - Present)
 
-LLM ( for data retrieval ) : Groq, with the API key stored in .env and never committed to Git.
+---
 
-Part 1: Plan before you code
-Prompt 1: PRD
-Read @ProblemStatement.txt. We're building a RAG chatbot for a class demo.
-Create docs/PRD.md with: goal, target users, in-scope and out-of-scope features,
-example user questions, success criteria, and constraints (free-tier tools only,
-runs locally, deployable to Render).
-Prompt 2: Architecture
-Using @docs/PRD.md, create docs/architecture.md covering: components, data flow
-(ingest → chunk → embed → store → retrieve → generate), tech stack (Python,
-ChromaDB, Groq LLM, a local embedding model), folder structure, and a simple
-text diagram of the query flow.
-Prompt 3: Implementation plan
-Using @docs/architecture.md, create docs/implementation.md with 6 phases:
-1. Project setup  2. Loading & chunking  3. Embedding & vector store
-4. Guardrails  5. Retrieval + LLM answer  6. UI
-For each phase list: files to create, what the phase does, and how I can
-verify it works before moving on. Don't write any code yet.
+Source: https://groww.in/mutual-funds/hdfc-equity-fund-direct-growth
 
-Part 2: Build in phases
-Prompt 4: Phase 1 (setup)
-Implement Phase 1 from @docs/implementation.md. Create requirements.txt,
-the folder structure, and a .gitignore that excludes .env, venv, and __pycache__.
-Prompt 5: Phase 2 (loading & chunking)
-Implement Phase 2 from @docs/implementation.md (loading & chunking).
-Save the raw source text to data/raw/ and every chunk to data/chunks/chunks.txt
-(numbered, with source and character count), so I can inspect them.
-Then run it and tell me how many chunks were created.
-Prompt 6: Phase 3 (embedding & vector DB)
-Implement Phase 3 from @docs/implementation.md (embed chunks and store in ChromaDB).
-Use a persistent ChromaDB directory. Also write a preview of the first 5 embeddings
-(first 10 dimensions each) to data/embeddings_preview.txt.
-Run it, then confirm the number of vectors stored and that the data persists
-after a restart.
-Prompt 7: Phase 4 (guardrails)
-Implement Phase 4 from @docs/implementation.md (guardrails): refuse off-topic
-questions, don't give advice outside the source content, and say "I don't know"
-when retrieved context doesn't answer the question.
-Prompt 8: API key setup
-Create a .env.example with GROQ_API_KEY= and GROQ_MODEL=, load them with
-python-dotenv, and confirm .env is in .gitignore.
-Then copy .env.example to .env and paste in your key. Never paste your API key into the chat.
-For GROQ_MODEL, pick a current model from https://console.groq.com/docs/models. Model names change often.
-Prompt 9: Phase 5 (retrieval + answer)
-Implement Phase 5 from @docs/implementation.md: embed the user's question with
-the SAME embedding model used in Phase 3, retrieve the top-k chunks from ChromaDB,
-and send system prompt + chunks + question to the Groq LLM.
-Add a CLI script so I can test by typing questions, and show which chunks
-were retrieved for each answer.
-Prompt 10: Test and refine
-Ask 5–6 questions: some answerable, some off-topic, some tricky. Then:
-For the question "<your question>", the answer was <what went wrong>.
-Suggest and apply fixes (chunk size, overlap, top-k, or system prompt),
-then re-run the same question so I can compare.
-Prompt 11: Conversation memory
-Add conversation memory: keep the last 10 messages and use them to rewrite
-follow-up questions before retrieval (e.g. "what about its fees?" should
-resolve "its" from earlier context).
-Prompt 12: Phase 6 (UI)
-Implement Phase 6 from @docs/implementation.md: a Streamlit chat UI with message
-history, a "sources" expander under each answer, and a clear-chat button.
-Tell me the command to run it locally.
+HDFC Flexi Cap Direct Plan Growth
+Equity | Flexi Cap | Very High Risk
+NAV: 29 Sep '26 - Rs. 2,172.71
+Min. for SIP: Rs. 100
+Fund size (AUM): Rs. 1,13,606.46 Cr
+Expense ratio: 0.77%
+Rating: 5
 
-Part 3: Ship it
-Prompt 13: Push to GitHub
-First create an empty repo on GitHub, then:
-Initialise git, make sure .env and the ChromaDB folder are NOT committed,
-commit everything, and push to <your-repo-url>.
-Prompt 14: Deploy on Render
-I'm deploying this repo to Render as a Web Service. Give me the exact values for
-Root Directory, Build Command, and Start Command, and list the environment
-variables I need to add. The vector DB should be rebuilt during the build.
+Exit Load: 1% if redeemed within 1 year
+Stamp duty on investment: 0.005% (from July 1st, 2020)
 
-How it works (recap)
-Question → embed (same model) → search vector DB → top chunks
-        → LLM (system prompt + chunks + question) → Answer
+Tax implication: If you redeem within one year, returns are taxed at 20%. If you redeem after one year, returns exceeding Rs 1.25 lakh in a financial year are taxed at 12.5%.
 
-Optional: custom UI with Google Stitch
-Design your chat screen in Stitch and export it as a ZIP (it lands in Downloads).
-Prompt:
-Move the Stitch export from ~/Downloads/<file>.zip into this project under
-design/stitch/, unzip it, and rebuild the UI to match these designs.
-Do NOT use Streamlit for this UI — use HTML/CSS/JS served by a small Python
-backend (FastAPI) that calls the existing RAG pipeline.
-Update the Render start command accordingly, then commit and push.
-Render redeploys automatically. Open your Render URL once the build finishes.
+Investment Objective: The scheme seeks to generate capital appreciation / income from a portfolio, predominantly invested in equity & equity related instruments.
+Fund benchmark: NIFTY 500 Total Return Index
+Fund house: HDFC Mutual Fund
+Launch Date: 10 Dec 1999
+
+Fund Manager: Dhruv Muchhal (Jun 2023 - Present), Amit Ganatra (Feb 2026 - Present)
+
+---
+
+Source: https://groww.in/mutual-funds/hdfc-elss-tax-saver-fund-direct-plan-growth
+
+HDFC ELSS Tax Saver Fund Direct Plan Growth
+ELSS | 3Y Lock-in | Equity | ELSS | Very High Risk
+NAV: 29 Sep '26 - Rs. 1,418.89
+Min. for SIP: Rs. 500
+Fund size (AUM): Rs. 15,991.78 Cr
+Expense ratio: 1.21%
+Rating: 5
+
+Exit Load: Nil
+Stamp duty on investment: 0.005% (from July 1st, 2020)
+
+Tax implication: If you redeem within one year, returns are taxed at 20%. If you redeem after one year, returns exceeding Rs 1.25 lakh in a financial year are taxed at 12.5%.
+
+Investment Objective: The scheme seeks to generate capital appreciation / income from a portfolio, comprising predominantly of equity & equity related instruments.
+Fund benchmark: NIFTY 500 Total Return Index
+Fund house: HDFC Mutual Fund
+Launch Date: 10 Dec 1999
+
+Lock-in period: 3 years (ELSS)
+
+Fund Manager: Amar Kalkundrikar (Dec 2025 - Present), Dhruv Muchhal (Jun 2023 - Present)
+
+---
+
+Source: https://groww.in/mutual-funds/hdfc-small-cap-fund-direct-growth
+
+HDFC Small Cap Fund Direct Growth
+Equity | Small Cap | Very High Risk
+NAV: 29 Sep '26 - Rs. 155.95
+Min. for SIP: Rs. 100
+Fund size (AUM): Rs. 41,890.86 Cr
+Expense ratio: 0.78%
+Rating: 3
+
+Exit Load: 1% if redeemed within 1 year
+Stamp duty on investment: 0.005% (from July 1st, 2020)
+
+Tax implication: If you redeem within one year, returns are taxed at 20%. If you redeem after one year, returns exceeding Rs 1.25 lakh in a financial year are taxed at 12.5%.
+
+Investment Objective: The scheme seeks to provide long-term capital appreciation /income by investing predominantly in Small-Cap companies.
+Fund benchmark: BSE 250 SmallCap Total Return Index
+Fund house: HDFC Mutual Fund
+Launch Date: 10 Dec 1999
+
+Fund Manager: Dhruv Muchhal (Jun 2023 - Present), Chirag Setalvad (Jun 2014 - Present)
+
+---
+
+Source: https://groww.in/mutual-funds/hdfc-balanced-advantage-fund-direct-growth
+
+HDFC Balanced Advantage Fund Direct Growth
+Hybrid | Dynamic Asset Allocation | Very High Risk
+NAV: 29 Sep '26 - Rs. 549.74
+Min. for SIP: Rs. 100
+Fund size (AUM): Rs. 1,07,295.79 Cr
+Expense ratio: 0.78%
+Rating: 5
+
+Exit Load: For units in excess of 15% of the investment, 1% will be charged for redemption within 1 year.
+Stamp duty on investment: 0.005% (from July 1st, 2020)
+
+Tax implication: If you redeem within one year, returns are taxed at 20%. If you redeem after one year, returns exceeding Rs 1.25 lakh in a financial year are taxed at 12.5%.
+
+Investment Objective: The Scheme seeks to provide long term capital appreciation / income from a dynamic mix of equity and debt investments.
+Fund benchmark: NIFTY 50 Hybrid Composite Debt 50:50 Index
+Fund house: HDFC Mutual Fund
+Launch Date: 10 Dec 1999
+
+Fund Manager: Anil Bamboli (Jul 2022 - Present), Arun Agarwal (Oct 2022 - Present), Dhruv Muchhal (Jun 2023 - Present), Nandita Menezes (Mar 2025 - Present), Gopal Agrawal (Jul 2022 - Present), Idhab Dalwai (Sep 2026 - Present)

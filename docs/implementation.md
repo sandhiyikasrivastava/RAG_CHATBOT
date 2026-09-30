@@ -1,4 +1,4 @@
-# Implementation Plan — RAG Chatbot
+# Implementation Plan — Groww Mutual Fund FAQ Assistant
 
 This document breaks the build into 6 phases. Each phase lists the files to create, what the phase does, and how to verify it works before moving on.
 
@@ -21,74 +21,45 @@ Creates the project skeleton: folder structure, dependencies, and gitignore rule
 | `src/ingest/__init__.py` | Makes `ingest` a sub-package |
 | `src/query/__init__.py` | Makes `query` a sub-package |
 
-### `requirements.txt` contents
-```
-sentence-transformers
-chromadb
-groq
-python-dotenv
-streamlit
-```
-
-### `.gitignore` contents
-```
-.env
-venv/
-__pycache__/
-data/chroma/
-*.pyc
-```
-
 ### How to verify
 - [ ] `pip install -r requirements.txt` completes without errors.
 - [ ] `python -c "import src.config"` runs without import errors.
-- [ ] `.env` is listed in `.gitignore` (run `git check-ignore .env` to confirm).
+- [ ] `.env` is listed in `.gitignore`.
 
 ---
 
 ## Phase 2: Loading & Chunking
 
 ### What this does
-Loads the source document from `data/raw/`, splits it into overlapping chunks with metadata, and saves them to a readable file for inspection.
+Fetches 5 Groww pages for HDFC mutual fund schemes, splits them into overlapping chunks with metadata, and saves them to a readable file.
 
 ### Files to create
 
 | File | Purpose |
 |------|---------|
-| `data/raw/source.txt` | Copy the source document here |
-| `src/ingest/loader.py` | Reads the source file and returns raw text |
+| `data/raw/source.txt` | Collected text from 5 Groww pages |
+| `src/ingest/loader.py` | Fetches and combines the 5 pages |
 | `src/ingest/chunker.py` | Splits text into chunks with metadata |
 | `src/ingest/run.py` | Orchestrates load → chunk → save |
 
-### Chunker strategy (proposed)
+### Chunker strategy
 - **Chunk size**: 500 characters
 - **Overlap**: 50 characters
-- **Metadata per chunk**: `chunk_index`, `source` (filename), `char_count`
-- **Output format** in `data/chunks/chunks.txt`:
-  ```
-  === Chunk 1 ===
-  Source: source.txt
-  Characters: 500
-  ---
-  [chunk text]
-
-  === Chunk 2 ===
-  ...
-  ```
+- **Metadata per chunk**: `chunk_index`, `source_url`, `char_count`
+- **Output format** in `data/chunks/chunks.txt`
 
 ### How to verify
 - [ ] `python -m src.ingest.run` completes without errors.
 - [ ] `data/chunks/chunks.txt` exists and is readable.
-- [ ] Open `chunks.txt` and confirm chunks are numbered, have source labels, and character counts.
-- [ ] Count the chunks and confirm the number is reasonable for the document size.
-- [ ] Spot-check that chunk text matches the source document.
+- [ ] Chunks are numbered with source URLs and character counts.
+- [ ] Spot-check that chunk text matches the Groww pages.
 
 ---
 
 ## Phase 3: Embedding & Vector Store
 
 ### What this does
-Converts each chunk into a 384-dimension vector using `all-MiniLM-L6-v2` and stores them in ChromaDB on disk. Also writes a preview of the first 5 embeddings.
+Converts each chunk into a 384-dimension vector using `all-MiniLM-L6-v2` and stores them in ChromaDB on disk.
 
 ### Files to create
 
@@ -105,59 +76,63 @@ Converts each chunk into a 384-dimension vector using `all-MiniLM-L6-v2` and sto
 
 ### How to verify
 - [ ] `python -m src.ingest.run` completes without errors.
-- [ ] `data/chroma/` directory is created with ChromaDB files.
-- [ ] `data/embeddings_preview.txt` exists and shows 5 vectors with 10 dimensions each.
-- [ ] Run a second time and confirm it says "Collection already exists" or skips re-ingestion (persistence check).
-- [ ] Restart Python, import ChromaDB, and confirm the collection still has vectors (persistence across restarts).
+- [ ] `data/chroma/` directory is created.
+- [ ] `data/embeddings_preview.txt` exists.
+- [ ] Vectors persist across restarts.
 
 ---
 
 ## Phase 4: Guardrails
 
 ### What this does
-Adds checks to refuse off-topic questions, prevent advice outside the source, and say "I don't know" when context is insufficient.
+Adds checks to refuse opinionated questions, enforce facts-only answers, and say "I don't know" when context is insufficient.
 
 ### Files to create
 
 | File | Purpose |
 |------|---------|
-| `src/query/guardrails.py` | Off-topic detection and context sufficiency checks |
+| `src/query/guardrails.py` | Opinionated question detection and context sufficiency checks |
 
 ### Guardrail logic
-1. **Off-topic check**: Compare the question embedding against all chunk embeddings. If the best similarity score is below a threshold (e.g., 0.3), refuse: "I can only answer questions about the document."
-2. **Context sufficiency**: If retrieved chunks don't contain enough relevant information (low similarity scores), respond: "I don't know. The document doesn't contain enough information to answer that."
-3. **No advice outside source**: The system prompt instructs the LLM to only use the provided context and never give advice beyond it.
+1. **Opinionated check**: Detect questions like "Should I buy/sell?" → refuse with polite message
+2. **Off-topic check**: Compare question embedding against all chunks. If best similarity < 0.3, refuse.
+3. **Context sufficiency**: If retrieved chunks don't contain enough relevant info, respond "I don't know."
+4. **No advice**: System prompt instructs LLM to only use provided context, never give advice.
+5. **No PII**: Reject questions containing PAN, Aadhaar, account numbers, etc.
+6. **Answer format**: ≤3 sentences + source link + "Last updated from sources:"
 
 ### How to verify
-- [ ] Ask an off-topic question (e.g., "What's the weather?") and confirm the bot refuses.
-- [ ] Ask an on-topic question and confirm it proceeds to retrieval.
-- [ ] Ask a question whose answer is NOT in the document and confirm the bot says "I don't know."
-- [ ] Ask a question that IS in the document and confirm the bot answers normally.
+- [ ] Ask "Should I buy HDFC Large Cap Fund?" → bot refuses.
+- [ ] Ask "What is the expense ratio?" → bot answers with source link.
+- [ ] Ask "What's the weather?" → bot refuses (off-topic).
+- [ ] Ask a question not in the pages → bot says "I don't know."
 
 ---
 
 ## Phase 5: Retrieval + LLM Answer
 
 ### What this does
-Embeds the user's question, retrieves top-k chunks from ChromaDB, sends them to Groq's LLM with a system prompt, and returns the answer. Includes a CLI for testing.
+Embeds the user's question, retrieves top-k chunks from ChromaDB, sends them to Groq's LLM with a system prompt, and returns the answer with source link.
 
 ### Files to create
 
 | File | Purpose |
 |------|---------|
 | `src/query/retriever.py` | Embeds query and searches ChromaDB |
-| `src/query/llm.py` | Groq API client — sends prompt and returns answer |
-| `src/chat.py` | Main RAG pipeline — combines retrieval + guardrails + LLM |
+| `src/query/llm.py` | Groq API client |
+| `src/chat.py` | Main RAG pipeline |
 | `src/cli.py` | CLI interface for testing |
 
 ### System prompt template
 ```
-You are a helpful assistant that answers questions based ONLY on the provided context.
+You are a facts-only assistant for HDFC mutual fund schemes.
 Rules:
 1. Only use information from the context below to answer.
 2. If the context doesn't contain the answer, say "I don't know."
-3. Never give advice or information beyond what's in the context.
-4. Be concise and accurate.
+3. Never give investment advice.
+4. Keep answers to 3 sentences or less.
+5. Include one source link from the context.
+6. End with "Last updated from sources: [date]".
 
 Context:
 {retrieved_chunks}
@@ -165,25 +140,18 @@ Context:
 Question: {user_question}
 ```
 
-### CLI behavior
-- Prompt the user to type a question.
-- Show which chunks were retrieved (chunk index + similarity score).
-- Display the LLM's answer.
-- Loop until the user types "quit".
-
 ### How to verify
 - [ ] `python -m src.cli` starts and prompts for a question.
-- [ ] Ask an on-topic question and confirm the answer is grounded in the document.
-- [ ] Confirm the CLI shows retrieved chunk indices and similarity scores.
-- [ ] Ask an off-topic question and confirm the guardrail refusal appears.
-- [ ] Type "quit" and confirm the CLI exits cleanly.
+- [ ] Ask a factual question → answer includes source link.
+- [ ] Ask an opinionated question → bot refuses.
+- [ ] Type "quit" → CLI exits cleanly.
 
 ---
 
 ## Phase 6: UI (Streamlit)
 
 ### What this does
-Builds a web chat interface with message history, a sources expander under each answer, and a clear-chat button.
+Builds a web chat interface with welcome line, example questions, disclaimer, message history, sources expander, and clear-chat button.
 
 ### Files to create
 
@@ -192,18 +160,22 @@ Builds a web chat interface with message history, a sources expander under each 
 | `src/app.py` | Streamlit chat UI |
 
 ### UI requirements
-- **Message history**: Show all user questions and bot answers in a chat layout.
-- **Sources expander**: Under each answer, a collapsible "Sources" section showing the retrieved chunks.
-- **Clear-chat button**: A button to reset the conversation.
-- **Conversation memory**: Keep last 10 messages and use them for question rewriting.
+- **Welcome line**: "Welcome! Ask me facts about HDFC mutual fund schemes."
+- **3 example questions**: Clickable suggestion chips
+- **Disclaimer**: "Facts-only. No investment advice."
+- **Message history**: Chat layout
+- **Sources expander**: Retrieved chunks under each answer
+- **Clear-chat button**: Resets conversation
+- **Conversation memory**: Last 10 messages for follow-up context
 
 ### How to verify
 - [ ] `streamlit run src/app.py` starts the app.
-- [ ] Type a question and confirm the answer appears in the chat.
-- [ ] Click "Sources" and confirm retrieved chunks are shown.
-- [ ] Click "Clear chat" and confirm the conversation resets.
-- [ ] Ask a follow-up question (e.g., "What about its fees?") and confirm pronoun resolution works.
-- [ ] Confirm the UI is accessible at `http://localhost:8501`.
+- [ ] Welcome line and 3 example questions are visible.
+- [ ] Disclaimer is displayed.
+- [ ] Ask a question → answer appears with source link.
+- [ ] Click "Sources" → retrieved chunks shown.
+- [ ] Click "Clear chat" → conversation resets.
+- [ ] Ask a follow-up question → pronoun resolution works.
 
 ---
 
@@ -214,9 +186,9 @@ Builds a web chat interface with message history, a sources expander under each 
 | 1. Setup | `pip install` works, `.env` is gitignored |
 | 2. Chunking | `chunks.txt` exists with numbered chunks + metadata |
 | 3. Embedding | ChromaDB persists, embeddings preview file exists |
-| 4. Guardrails | Off-topic refused, insufficient context says "I don't know" |
-| 5. Retrieval + LLM | CLI answers questions, shows retrieved chunks |
-| 6. UI | Streamlit app runs, shows history + sources + clear button |
+| 4. Guardrails | Opinionated questions refused, insufficient context says "I don't know" |
+| 5. Retrieval + LLM | CLI answers questions with source links |
+| 6. UI | Streamlit app runs with welcome line, disclaimer, sources, clear button |
 
 ---
 
@@ -235,4 +207,4 @@ Builds a web chat interface with message history, a sources expander under each 
 
 | Version | Date | Author | Notes |
 |---------|------|--------|-------|
-| 1.0 | 2026-09-30 | AI Coding Agent | Initial implementation plan based on architecture.md |
+| 1.0 | 2026-09-30 | AI Coding Agent | Updated implementation plan for Groww HDFC Mutual Fund FAQ Assistant |

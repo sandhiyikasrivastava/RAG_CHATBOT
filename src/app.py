@@ -6,7 +6,6 @@ Usage:
 
 import streamlit as st
 from src.chat import RAGChat
-from src.config import MEMORY_LIMIT
 
 # Page config
 st.set_page_config(
@@ -33,55 +32,8 @@ def init_chat():
 def clear_chat():
     """Clear the conversation history."""
     st.session_state.messages = []
-
-
-def get_conversation_history() -> str:
-    """Get the last N messages as a formatted string.
-
-    Returns:
-        Formatted conversation history.
-    """
-    messages = st.session_state.messages[-MEMORY_LIMIT:]
-    history = []
-    for msg in messages:
-        role = "User" if msg["role"] == "user" else "Bot"
-        history.append(f"{role}: {msg['content']}")
-    return "\n".join(history)
-
-
-def rewrite_question(question: str) -> str:
-    """Rewrite a follow-up question using conversation history.
-
-    Args:
-        question: The user's question.
-
-    Returns:
-        The rewritten question (or original if no history).
-    """
-    if len(st.session_state.messages) < 2:
-        return question
-
-    history = get_conversation_history()
-
-    # Simple pronoun resolution
-    pronouns = ["it", "its", "they", "them", "their", "this", "that", "these", "those"]
-    question_lower = question.lower()
-
-    # If question starts with a pronoun or is very short, try to rewrite
-    words = question_lower.split()
-    if words and words[0] in pronouns or len(words) <= 5:
-        # Use the last bot message to provide context
-        last_bot_msg = None
-        for msg in reversed(st.session_state.messages):
-            if msg["role"] == "assistant":
-                last_bot_msg = msg["content"]
-                break
-
-        if last_bot_msg:
-            # Simple rewrite: combine context with question
-            return f"{question} (Context from previous answer: {last_bot_msg[:200]})"
-
-    return question
+    if st.session_state.chat:
+        st.session_state.chat.memory.clear()
 
 
 def main():
@@ -113,12 +65,9 @@ def main():
         # Add user message to history
         st.session_state.messages.append({"role": "user", "content": prompt})
 
-        # Rewrite question if needed
-        rewritten = rewrite_question(prompt)
-
-        # Get answer
+        # Get answer (memory rewriting happens inside RAGChat)
         with st.spinner("Thinking..."):
-            result = st.session_state.chat.ask(rewritten)
+            result = st.session_state.chat.ask(prompt)
 
         # Add bot response to history
         st.session_state.messages.append({

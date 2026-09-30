@@ -1,10 +1,8 @@
-# Product Requirements Document (PRD) — RAG Chatbot
+# Product Requirements Document (PRD) — Groww Mutual Fund FAQ Assistant
 
 ## 1. Goal
 
-Build a **Retrieval-Augmented Generation (RAG) chatbot** for a class demo that answers questions using information from a provided document. The chatbot ingests a source document, chunks it, embeds the chunks into a vector database, retrieves relevant chunks at query time, and generates answers using a Large Language Model (LLM) grounded in the retrieved context.
-
-The system is designed to be built incrementally with an AI coding agent (Cursor or OpenCode), with each phase verified before moving to the next.
+Build a **facts-only RAG chatbot** that answers questions about HDFC mutual fund schemes using only official public pages from Groww. Every answer includes one source link. No investment advice.
 
 ---
 
@@ -12,43 +10,45 @@ The system is designed to be built incrementally with an AI coding agent (Cursor
 
 | User | Description |
 |------|-------------|
-| **Students** | Learners in the class who will use the chatbot to ask questions about the course material and see how RAG works. |
-| **Instructor** | The teacher who demonstrates the RAG pipeline, explains each phase, and evaluates the final product. |
-| **Developer (you)** | The person building the chatbot alongside an AI coding agent, following the phased implementation plan. |
+| **Retail investors** | People comparing HDFC mutual fund schemes who want quick factual answers (expense ratio, exit load, minimum SIP, etc.) |
+| **Support/content teams** | Teams answering repetitive mutual fund questions who need a facts-only reference tool |
 
 ---
 
 ## 3. In-Scope Features
 
 ### 3.1 Data Ingestion Pipeline
-- **Loading**: Read a source text document from `data/raw/`.
-- **Chunking**: Split the document into overlapping chunks with metadata (source, character count, chunk index). The AI agent inspects the data and proposes a chunking strategy before writing code.
-- **Embedding**: Convert each chunk into a 384-dimension vector using `sentence-transformers/all-MiniLM-L6-v2` (local, no API key needed).
-- **Vector Storage**: Store embeddings in ChromaDB, persisted to disk so ingestion runs once.
+- **Loading**: Scrape/collect 5 public Groww pages for HDFC mutual fund schemes
+- **Chunking**: Split pages into overlapping chunks with metadata (source URL, character count, chunk index)
+- **Embedding**: Convert each chunk into a 384-dimension vector using `sentence-transformers/all-MiniLM-L6-v2`
+- **Vector Storage**: Store embeddings in ChromaDB, persisted to disk
 
 ### 3.2 Retrieval + Answer Generation
-- **Query Embedding**: Embed the user's question using the *same* embedding model.
-- **Similarity Search**: Retrieve the top-k most relevant chunks from ChromaDB.
-- **LLM Answer**: Send system prompt + retrieved chunks + user question to Groq's LLM to generate a grounded answer.
-- **Source Attribution**: Show which chunks were retrieved for each answer.
+- **Query Embedding**: Embed the user's question using the same embedding model
+- **Similarity Search**: Retrieve top-k most relevant chunks from ChromaDB
+- **LLM Answer**: Send system prompt + retrieved chunks + question to Groq LLM
+- **Source Attribution**: Every answer includes one clear citation link
 
 ### 3.3 Guardrails
-- Refuse off-topic questions (questions unrelated to the source document).
-- Do not give advice outside the source content.
-- Say "I don't know" when retrieved context does not answer the question.
+- **Facts-only**: Refuse opinionated/portfolio questions (e.g., "Should I buy/sell?") with a polite message
+- **No advice**: Never give investment advice; link to official factsheet if asked
+- **No PII**: Do not accept/store PAN, Aadhaar, account numbers, OTPs, emails, or phone numbers
+- **No performance claims**: Don't compute/compare returns; link to official factsheet
+- **Clarity**: Keep answers ≤3 sentences; add "Last updated from sources:"
 
 ### 3.4 Conversation Memory
-- Keep the last 10 messages in memory.
-- Rewrite follow-up questions using conversation history before retrieval (e.g., resolve pronouns like "its" from earlier context).
+- Keep the last 10 messages in memory
+- Rewrite follow-up questions using conversation history before retrieval
 
 ### 3.5 User Interface
-- **CLI**: A command-line interface for testing questions during development.
-- **Streamlit Web UI**: A chat interface with message history, a "sources" expander under each answer, and a clear-chat button.
+- **Welcome line** + 3 example questions
+- **Disclaimer**: "Facts-only. No investment advice."
+- **Sources expander**: Show retrieved chunks under each answer
+- **Clear-chat button**: Reset the conversation
 
 ### 3.6 Deployment
-- Push code to GitHub (excluding `.env` and ChromaDB data).
-- Deploy to Render as a Web Service with automatic redeploys on git push.
-- Vector DB is rebuilt during the Render build step.
+- Push code to GitHub (excluding `.env` and ChromaDB data)
+- Deploy to Render as a Web Service
 
 ---
 
@@ -56,34 +56,29 @@ The system is designed to be built incrementally with an AI coding agent (Cursor
 
 | Feature | Reason |
 |---------|--------|
-| Multi-document support (beyond a single source file) | Class demo uses one document. |
-| User authentication / multi-user support | Single-user demo. |
-| Streaming token-by-token responses in the UI | Not required for the demo. |
-| Fine-tuning the embedding model | Using a pre-trained model is sufficient. |
-| Hosted vector DB (e.g., Pinecone, Weaviate) | ChromaDB local persistence meets requirements. |
-| Mobile app | Web UI is sufficient. |
-| Voice input / output | Not part of the demo. |
-| Admin dashboard for managing documents | Single-document ingestion is manual. |
+| Investment advice or recommendations | Facts-only by design |
+| Performance/return calculations | No performance claims allowed |
+| Multi-AMC support | Scope is HDFC only |
+| User accounts / PII storage | No PII allowed |
+| Screenshots of app back-end | Public sources only |
+| Third-party blogs as sources | Official pages only |
 
 ---
 
 ## 5. Example User Questions
 
-### Answerable (on-topic)
-- "What is the main topic of the document?"
-- "Summarize the key points."
-- "What are the steps involved in the process?"
-- "Explain the data flow described in the document."
+### Answerable (factual)
+- "What is the expense ratio of HDFC Large Cap Fund?"
+- "What is the ELSS lock-in period?"
+- "What is the minimum SIP for HDFC Small Cap Fund?"
+- "What is the exit load for HDFC Equity Fund?"
+- "How do I download my capital gains statement?"
 
-### Off-topic (should be refused)
-- "What's the weather like today?"
-- "Write a poem about the ocean."
-- "What is the capital of France?"
-
-### Tricky (requires good retrieval)
-- "How does X relate to Y?" (where X and Y are mentioned in different sections)
-- "What are the trade-offs?" (requires synthesizing multiple chunks)
-- Follow-up: "What about its fees?" (requires conversation memory to resolve "its")
+### Refused (opinionated/advice)
+- "Should I buy HDFC Large Cap Fund?"
+- "Which fund is best for me?"
+- "Should I sell my ELSS now?"
+- "What will be my returns in 5 years?"
 
 ---
 
@@ -91,16 +86,16 @@ The system is designed to be built incrementally with an AI coding agent (Cursor
 
 | # | Criterion | How to Verify |
 |---|-----------|---------------|
-| 1 | The ingestion pipeline produces chunks saved to `data/chunks/chunks.txt` with metadata. | Open the file and inspect chunk count, source labels, and character counts. |
-| 2 | Embeddings are stored in ChromaDB and persist across restarts. | Run ingestion, restart the process, query without re-ingesting. |
-| 3 | The system retrieves relevant chunks for on-topic questions. | Check that retrieved chunks contain keywords/semantic matches to the question. |
-| 4 | The LLM generates answers grounded in the retrieved context. | Answers should reference information from the chunks, not hallucinate. |
-| 5 | Off-topic questions are refused. | Ask an unrelated question; the bot should decline to answer. |
-| 6 | When context is insufficient, the bot says "I don't know." | Ask a question whose answer is not in the document. |
-| 7 | Follow-up questions resolve pronouns using conversation memory. | Ask "What about its fees?" after discussing a specific topic. |
-| 8 | The Streamlit UI shows message history, sources, and a clear-chat button. | Interact with the UI and confirm all elements work. |
-| 9 | The app deploys successfully on Render. | Open the Render URL and ask a question. |
-| 10 | `.env` and ChromaDB data are never committed to Git. | Check `.gitignore` and git log. |
+| 1 | Ingestion produces chunks from 5 Groww pages saved to `data/chunks/chunks.txt` | Open file and inspect chunks |
+| 2 | Embeddings stored in ChromaDB and persist across restarts | Run ingestion, restart, query |
+| 3 | Factual questions retrieve relevant chunks | Check chunk content matches question |
+| 4 | Every answer includes one source link | Verify citation in every response |
+| 5 | Opinionated questions are refused with polite message | Ask "Should I buy..." |
+| 6 | Answers are ≤3 sentences with "Last updated from sources:" | Check answer length and footer |
+| 7 | No PII accepted/stored | Test with PAN/Aadhaar input |
+| 8 | UI shows welcome line, 3 example questions, disclaimer | Interact with Streamlit UI |
+| 9 | App deploys successfully on Render | Open Render URL and ask a question |
+| 10 | `.env` and ChromaDB data never committed to Git | Check `.gitignore` and git log |
 
 ---
 
@@ -108,13 +103,16 @@ The system is designed to be built incrementally with an AI coding agent (Cursor
 
 | Constraint | Detail |
 |------------|--------|
-| **Free-tier tools only** | Groq API (free tier), local embedding model (no cost), ChromaDB (open source), Streamlit (open source), Render (free tier). |
-| **Runs locally** | The entire pipeline (embedding, vector DB, LLM API calls) must work on a local machine with Python 3.10+. |
-| **Deployable to Render** | The app must be deployable as a Render Web Service with a build command that rebuilds the vector DB and a start command that runs the UI. |
-| **API key security** | The Groq API key is stored in `.env`, loaded via `python-dotenv`, and never committed to Git or pasted into chat. |
-| **Same embedding model** | The same model (`all-MiniLM-L6-v2`) must be used for both chunk embedding and query embedding to ensure vector space consistency. |
-| **Readable chunks** | All chunks must be saved to a human-readable `.txt` file for inspection. |
-| **Python 3.10+** | The project targets Python 3.10 or higher. |
+| **Public sources only** | Only official Groww/AMC/SEBI/AMFI pages |
+| **No PII** | Do not accept/store PAN, Aadhaar, account numbers, OTPs, emails, phone numbers |
+| **No performance claims** | Don't compute/compare returns; link to official factsheet |
+| **Clarity & transparency** | Answers ≤3 sentences; add "Last updated from sources:" |
+| **Free-tier tools only** | Groq API, local embedding model, ChromaDB, Streamlit, Render |
+| **Runs locally** | Python 3.10+ |
+| **Deployable to Render** | Build command rebuilds vector DB |
+| **API key security** | Groq API key in `.env`, never committed |
+| **Same embedding model** | `all-MiniLM-L6-v2` for both chunks and queries |
+| **Readable chunks** | All chunks saved to `.txt` file |
 
 ---
 
@@ -126,20 +124,31 @@ The system is designed to be built incrementally with an AI coding agent (Cursor
 | Embedding Model | `sentence-transformers/all-MiniLM-L6-v2` | Local text embeddings (384-dim) |
 | Vector DB | ChromaDB | Store and search embeddings |
 | LLM | Groq API | Answer generation |
-| CLI | Python `input()` | Development testing |
 | UI | Streamlit | Web chat interface |
 | Deployment | Render | Cloud hosting |
 | Env Management | `python-dotenv` | Load API keys from `.env` |
 
 ---
 
-## 9. High-Level Flow
+## 9. Source Corpus
+
+| # | Scheme | URL |
+|---|--------|-----|
+| 1 | HDFC Large Cap Fund | https://groww.in/mutual-funds/hdfc-large-cap-fund-direct-growth |
+| 2 | HDFC Equity Fund (Flexi Cap) | https://groww.in/mutual-funds/hdfc-equity-fund-direct-growth |
+| 3 | HDFC ELSS Tax Saver Fund | https://groww.in/mutual-funds/hdfc-elss-tax-saver-fund-direct-plan-growth |
+| 4 | HDFC Small Cap Fund | https://groww.in/mutual-funds/hdfc-small-cap-fund-direct-growth |
+| 5 | HDFC Balanced Advantage Fund | https://groww.in/mutual-funds/hdfc-balanced-advantage-fund-direct-growth |
+
+---
+
+## 10. High-Level Flow
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    INGESTION (One-time)                  │
 │                                                         │
-│  Source Document → Load → Chunk → Embed → ChromaDB      │
+│  5 Groww Pages → Load → Chunk → Embed → ChromaDB       │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
                            │
@@ -151,13 +160,14 @@ The system is designed to be built incrementally with an AI coding agent (Cursor
 │                                                         │
 │  System Prompt + Chunks + Question → Groq LLM → Answer  │
 │                                                         │
+│  Answer + Source Link + "Last updated from sources:"    │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 10. Document History
+## 11. Document History
 
 | Version | Date | Author | Notes |
 |---------|------|--------|-------|
-| 1.0 | 2026-09-30 | AI Coding Agent | Initial PRD based on ProblemStatement.txt |
+| 1.0 | 2026-09-30 | AI Coding Agent | Initial PRD based on updated ProblemStatement.txt — Groww HDFC Mutual Fund FAQ Assistant |

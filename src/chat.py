@@ -5,6 +5,7 @@ from src.ingest.embedder import Embedder
 from src.query.retriever import Retriever
 from src.query.llm import LLMClient
 from src.query.guardrails import check_guardrails
+from src.query.memory import ConversationMemory, rewrite_question
 
 
 SYSTEM_PROMPT_TEMPLATE = """You are a helpful assistant that answers questions based ONLY on the provided context.
@@ -28,6 +29,7 @@ class RAGChat:
         self.embedder = Embedder()
         self.retriever = Retriever(self.embedder)
         self.llm = LLMClient()
+        self.memory = ConversationMemory()
 
     def ask(self, question: str) -> Dict[str, Any]:
         """Process a question and return an answer with sources.
@@ -38,15 +40,23 @@ class RAGChat:
         Returns:
             Dict with 'answer', 'sources', and 'refused' keys.
         """
+        # Rewrite question using conversation memory
+        rewritten = rewrite_question(question, self.memory)
+        if rewritten != question:
+            print(f"  [Memory] Rewritten: {rewritten}")
+
         # Get all embeddings for guardrails
         all_embeddings = self.retriever.get_all_embeddings()
 
         # Retrieve top-k chunks
-        retrieved_chunks = self.retriever.retrieve(question)
+        retrieved_chunks = self.retriever.retrieve(rewritten)
 
         # Run guardrails
-        refusal = check_guardrails(question, retrieved_chunks, self.embedder, all_embeddings)
+        refusal = check_guardrails(rewritten, retrieved_chunks, self.embedder, all_embeddings)
         if refusal:
+            # Still add to memory even if refused
+            self.memory.add("user", question)
+            self.memory.add("assistant", refusal)
             return {
                 "answer": refusal,
                 "sources": [],
@@ -62,11 +72,15 @@ class RAGChat:
         # Build system prompt
         system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
             retrieved_chunks=context,
-            user_question=question,
+            user_question=rewritten,
         )
 
         # Generate answer
-        answer = self.llm.generate(system_prompt, question)
+        answer = self.llm.generate(system_prompt, rewritten)
+
+        # Add to memory
+        self.memory.add("user", question)
+        self.memory.add("assistant", answer)
 
         return {
             "answer": answer,
