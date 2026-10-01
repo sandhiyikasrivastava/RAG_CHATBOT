@@ -8,14 +8,20 @@ from query.guardrails import check_guardrails
 from query.memory import ConversationMemory, rewrite_question
 
 
-SYSTEM_PROMPT_TEMPLATE = """You are a facts-only assistant for HDFC mutual fund schemes.
-Rules:
-1. Only use information from the context below to answer.
+SYSTEM_PROMPT_TEMPLATE = """You are a strictly factual assistant for HDFC mutual fund schemes. You extract and report objective, documented facts from the provided context.
+
+IMPORTANT: The context below contains the answer to most questions. Your job is to FIND the relevant information in the context and report it. Only say "I don't know" if the context truly does not contain the requested information.
+
+RULES:
+1. Extract the answer directly from the context. If the data is there, report it.
 2. If the context doesn't contain the answer, say "I don't know."
-3. Never give investment advice.
-4. Keep answers to 3 sentences or less.
-5. Include one source link from the context.
-6. End with "Last updated from sources: [date]".
+3. NEVER give investment advice, opinions, recommendations, or suggestions.
+4. NEVER predict future performance or returns.
+5. Keep answers concise (1-3 sentences).
+6. Include the source link from the context.
+7. End with "Last updated from sources: [date]".
+
+If the user asks an opinionated or advice-seeking question, respond with: "Only fact-based questions allowed."
 
 Context:
 {retrieved_chunks}
@@ -53,8 +59,8 @@ class RAGChat:
         # Retrieve top-k chunks
         retrieved_chunks = self.retriever.retrieve(rewritten)
 
-        # Run guardrails
-        refusal = check_guardrails(rewritten, retrieved_chunks, self.embedder, all_embeddings)
+        # Run guardrails (with LLM-based opinionated question check)
+        refusal = check_guardrails(rewritten, retrieved_chunks, self.embedder, all_embeddings, self.llm)
         if refusal:
             # Still add to memory even if refused
             self.memory.add("user", question)
@@ -80,6 +86,17 @@ class RAGChat:
         # Generate answer
         answer = self.llm.generate(system_prompt, rewritten)
 
+        # Post-generation check: verify answer doesn't contain opinions
+        if self._contains_opinions(answer):
+            refusal = "Only fact-based questions allowed."
+            self.memory.add("user", question)
+            self.memory.add("assistant", refusal)
+            return {
+                "answer": refusal,
+                "sources": [],
+                "refused": True,
+            }
+
         # Add to memory
         self.memory.add("user", question)
         self.memory.add("assistant", answer)
@@ -89,3 +106,28 @@ class RAGChat:
             "sources": retrieved_chunks,
             "refused": False,
         }
+
+    def _contains_opinions(self, answer: str) -> bool:
+        """Check if the generated answer contains opinionated language.
+
+        Args:
+            answer: The generated answer text.
+
+        Returns:
+            True if the answer contains opinionated language.
+        """
+        opinion_indicators = [
+            "i recommend", "i suggest", "i advise", "you should",
+            "you must", "you ought to", "it is advisable",
+            "it is recommended", "it is suggested", "good investment",
+            "bad investment", "worth buying", "worth investing",
+            "good time to invest", "bad time to invest",
+            "i think", "in my opinion", "i believe",
+            "you can earn", "you will get", "you will make",
+            "guaranteed returns", "risk-free", "safe investment",
+            "best fund", "best scheme", "better option",
+            "good option", "bad option", "good choice",
+            "bad choice", "good pick", "bad pick",
+        ]
+        answer_lower = answer.lower()
+        return any(indicator in answer_lower for indicator in opinion_indicators)

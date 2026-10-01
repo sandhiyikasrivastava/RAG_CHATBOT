@@ -1,0 +1,244 @@
+<!DOCTYPE html><html lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+<title>Groww AI Assist - HDFC Insights</title>
+<!-- Tailwind CSS v3 with forms & container queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            groww: {
+              primary: '#00D09C',
+              dark: '#00b386',
+              light: '#E6FAF5',
+              surface: '#F6F7F9',
+              darkBg: '#121212',
+              cardBorder: 'rgba(229, 231, 235, 0.7)'
+            }
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Plus Jakarta Sans', 'Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+<!-- BEGIN: Custom Typography & Base Styles -->
+<style data-purpose="base-styling">
+    body {
+      background-color: #ECEEF2;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    /* Hide scrollbars for slick mobile touch experience */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+<!-- END: Custom Typography & Base Styles -->
+</head>
+<body class="flex items-center justify-center min-h-screen text-slate-800 antialiased p-0 sm:p-4">
+<!-- BEGIN: Mobile Device Frame Simulator -->
+<div class="w-full max-w-[428px] h-screen sm:h-[896px] bg-[#F7F8FA] sm:rounded-[44px] shadow-2xl flex flex-col overflow-hidden relative border border-slate-200/80">
+<!-- BEGIN: iOS Status Bar -->
+<header class="pt-3 px-6 flex justify-between items-center text-xs font-semibold text-slate-800 z-30 select-none">
+<span class="tracking-tight text-[15px]">9:41</span>
+<!-- Dynamic Island / Top Sensor Mock -->
+<div class="w-28 h-4 bg-slate-900 rounded-full hidden sm:block mx-auto"></div>
+<div class="flex items-center space-x-2 text-[13px]">
+<!-- Cell Signal -->
+<svg class="w-4 h-3.5 fill-current" viewBox="0 0 17 12">
+<rect height="4" rx="0.8" width="3" x="0" y="8"></rect>
+<rect height="6.5" rx="0.8" width="3" x="4.5" y="5.5"></rect>
+<rect height="9" rx="0.8" width="3" x="9" y="3"></rect>
+<rect height="12" rx="0.8" width="3" x="13.5" y="0"></rect>
+</svg>
+<!-- Wifi -->
+<svg class="w-4 h-3.5 fill-current" viewBox="0 0 16 12">
+<path d="M8 10a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm-4.24-2.83a6 6 0 0 1 8.48 0 .8.8 0 0 1-1.13 1.13 4.4 4.4 0 0 0-6.22 0 .8.8 0 0 1-1.13-1.13zm-2.83-2.83a10 10 0 0 1 14.14 0 .8.8 0 1 1-1.13 1.13 8.4 8.4 0 0 0-11.88 0 .8.8 0 0 1-1.13-1.13z"></path>
+</svg>
+<!-- Battery -->
+<div class="w-6 h-3 border border-slate-700 rounded-sm p-0.5 flex items-center">
+<div class="h-full w-full bg-slate-800 rounded-2xs"></div>
+</div>
+</div>
+</header>
+<!-- END: iOS Status Bar -->
+<!-- BEGIN: Navigation Header -->
+<nav class="px-5 py-3 flex items-center justify-between border-b border-slate-100 bg-[#F7F8FA]/90 backdrop-blur-md sticky top-0 z-20">
+<!-- Back Arrow -->
+<button aria-label="Go Back" class="w-9 h-9 rounded-full bg-white shadow-sm border border-slate-200/60 flex items-center justify-center text-slate-700 active:scale-95 transition-transform">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+<path d="M15.75 19.5L8.25 12l7.5-7.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<!-- Center App Title & Status -->
+<div class="flex items-center space-x-2">
+<div class="relative">
+<div class="w-7 h-7 rounded-lg bg-groww-primary/10 border border-groww-primary/30 flex items-center justify-center">
+<span class="font-black text-groww-dark text-xs tracking-tighter">G•</span>
+</div>
+<span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full"></span>
+</div>
+<div class="text-left">
+<div class="flex items-center space-x-1.5">
+<h1 class="font-bold text-slate-900 text-sm tracking-tight">AI Assist</h1>
+
+</div>
+
+</div>
+</div>
+<!-- Action Button (Options) -->
+<button aria-label="Chat Options" class="w-9 h-9 rounded-full bg-white shadow-sm border border-slate-200/60 flex items-center justify-center text-slate-700 active:scale-95 transition-transform">
+<svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<circle cx="12" cy="12" fill="currentColor" r="1.2"></circle>
+<circle cx="19" cy="12" fill="currentColor" r="1.2"></circle>
+<circle cx="5" cy="12" fill="currentColor" r="1.2"></circle>
+</svg>
+</button>
+</nav>
+<!-- END: Navigation Header -->
+<!-- BEGIN: Main Chat Scrollable Content -->
+<main class="flex-1 overflow-y-auto px-5 pt-6 pb-4 space-y-6 no-scrollbar">
+<!-- AI Sparkle Icon & Greeting Header (Referencing IMAGE_1 style) -->
+<section class="text-center pt-2">
+<!-- Sparkle Circular Badge -->
+<div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-white shadow-sm border border-slate-200/80 mb-4 transition-transform hover:scale-105">
+<svg class="w-7 h-7 text-slate-800" fill="currentColor" viewBox="0 0 24 24">
+<!-- Sparkle icon matching reference -->
+<path d="M12 2L13.8 8.2L20 10L13.8 11.8L12 18L10.2 11.8L4 10L10.2 8.2L12 2Z"></path>
+<path d="M19 16L19.9 19.1L23 20L19.9 20.9L19 24L18.1 20.9L15 20L18.1 19.1L19 16Z" opacity="0.6"></path>
+</svg>
+</div>
+<!-- Greeting -->
+<h2 class="text-slate-800 text-[19px] font-semibold tracking-tight">Hi Brooklyn,</h2>
+<p class="text-2xl font-bold text-slate-400 mt-1 tracking-tight">
+          Let’s Start a <span class="text-slate-900 font-extrabold">Smart Conversation</span>
+</p>
+<p class="text-xs text-slate-500 mt-1.5 font-medium">Ask real-time queries about HDFC Bank, Mutual Funds &amp; Results</p>
+</section>
+<!-- Quick Analysis Metric Prompt Cards (Horizontal Swipeable / Clean Grid matching IMAGE_1) -->
+<section>
+<div class="flex items-center justify-between mb-2.5 px-0.5">
+<span class="text-[12px] font-semibold text-slate-500 uppercase tracking-wider">Recommended Topics</span>
+<span class="text-[11px] font-medium text-groww-dark flex items-center cursor-pointer">
+            Explore all
+            <svg class="w-3 h-3 ml-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8.25 4.5l7.5 7.5-7.5 7.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+</span>
+</div>
+<div class="grid grid-cols-1 gap-3">
+<!-- Card 1: Financials & Results -->
+
+<!-- Card 2: Risk Management & Valuation -->
+<button class="w-full text-left bg-white p-4 rounded-2xl border border-slate-200/70 shadow-xs hover:border-emerald-300 hover:shadow-md transition-all group flex items-start space-x-3.5 active:scale-[0.99]">
+<div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 group-hover:bg-emerald-50 transition-colors">
+<!-- Bar Chart / Risk Icon from reference style -->
+<svg class="w-5 h-5 text-slate-700 group-hover:text-emerald-600 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+<path d="M4 18h2v-4H4v4zm5 0h2v-8H9v8zm5 0h2v-12h-2v12zm5 0h2v-6h-2v6z"></path>
+</svg>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="text-sm font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">Risk &amp; Valuation</h3>
+<p class="text-xs text-slate-500 mt-1 leading-snug">Target prices, analyst consensus, P/E benchmark and portfolio risk.</p>
+</div>
+</button>
+<!-- Card 3: Banking & FD Rates Alert -->
+<button class="w-full text-left bg-white p-4 rounded-2xl border border-slate-200/70 shadow-xs hover:border-emerald-300 hover:shadow-md transition-all group flex items-start space-x-3.5 active:scale-[0.99]">
+<div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 group-hover:bg-emerald-50 transition-colors">
+<!-- Bell/Alert Icon from reference style -->
+<svg class="w-5 h-5 text-slate-700 group-hover:text-emerald-600 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<div class="flex-1 min-w-0">
+<h3 class="text-sm font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">Banking Rates &amp; Alerts</h3>
+<p class="text-xs text-slate-500 mt-1 leading-snug">Fixed deposit yields, home loan interest trends, and price movement alerts.</p>
+</div>
+</button>
+</div>
+</section>
+<!-- Suggested Quick Prompt Chips -->
+<section class="space-y-2">
+<p class="text-xs font-medium text-slate-400 uppercase tracking-wide px-1">Common Questions</p>
+<div class="flex flex-wrap gap-2">
+<button class="text-[12px] bg-white text-slate-700 px-3 py-2 rounded-xl border border-slate-200/90 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-colors text-left">
+            💡 What is HDFC Bank's current expense ratio?
+          </button>
+<button class="text-[12px] bg-white text-slate-700 px-3 py-2 rounded-xl border border-slate-200/90 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-colors text-left">
+            📊 What is the exit load ?</button>
+
+</div>
+</section>
+</main>
+<!-- END: Main Chat Scrollable Content -->
+<!-- BEGIN: Chat Input Box Section (Replicating the reference input container) -->
+<footer class="p-4 pt-1 bg-gradient-to-t from-[#F7F8FA] via-[#F7F8FA] to-transparent">
+<!-- Elevated Input Card Container -->
+<div class="bg-white rounded-3xl p-3 border border-slate-200/80 shadow-md flex flex-col space-y-3 transition-shadow focus-within:shadow-lg focus-within:border-emerald-300">
+<!-- Editable Input Area -->
+<div class="w-full px-2 pt-1">
+<textarea class="w-full resize-none border-none p-0 text-slate-800 placeholder-slate-400 text-sm focus:ring-0 focus:outline-none bg-transparent font-normal leading-relaxed" placeholder="Ask anything about HDFC stocks, dividends, rates..." rows="2"></textarea>
+</div>
+<!-- Action Bar at Bottom of Input Box -->
+<div class="flex items-center justify-between pt-1">
+<!-- Left Actions: Attachment & Search Pill -->
+<div class="flex items-center space-x-2">
+<!-- Paperclip / Attachment -->
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors" title="Attach file or screenshot">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<path d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.37l-9.192 9.192a1.5 1.5 0 01-2.122-2.122l8.83-8.83" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+<!-- Search Pill (Inspired directly by the reference image) -->
+<button class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200/80 border border-slate-200/50 text-slate-600 transition-colors text-xs font-medium">
+<svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+<circle cx="12" cy="12" r="9"></circle>
+<path d="M3.6 9h16.8M3.6 15h16.8M12 3a15.3 15.3 0 0 1 4 9 15.3 15.3 0 0 1-4 9 15.3 15.3 0 0 1-4-9 15.3 15.3 0 0 1 4-9z"></path>
+</svg>
+<span class="">Search Web</span>
+</button>
+</div>
+<!-- Right Action: Dark Send Pill Button (Circular arrow button matching IMAGE_1) -->
+<button class="w-9 h-9 rounded-full bg-black hover:bg-slate-800 active:scale-95 text-white flex items-center justify-center shadow transition-all">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+<path d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</button>
+</div>
+</div>
+<!-- Legal Disclaimer Microcopy -->
+<div class="text-center mt-2.5 px-2">
+<p class="text-[10px] text-slate-400 font-medium leading-tight">
+          AI generated analysis. Please verify financial figures before trading or investing.
+        </p>
+</div>
+<!-- Home Bar Indicator -->
+<div class="w-32 h-1 bg-slate-300 rounded-full mx-auto mt-2"></div>
+</footer>
+<!-- END: Chat Input Box Section -->
+</div>
+<!-- END: Mobile Device Frame Simulator -->
+<!-- BEGIN: Interactive Micro-behavior Script -->
+<script data-purpose="chat-interactive-handlers">
+    // Handle suggestion chip clicks into textarea
+    document.querySelectorAll('button[class*="text-[12px]"]').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const textarea = document.querySelector('textarea');
+        if (textarea) {
+          const text = this.innerText.replace(/^[^\w]+/, '').trim();
+          textarea.value = text;
+          textarea.focus();
+        }
+      });
+    });
+  </script>
+<!-- END: Interactive Micro-behavior Script -->
+
+
+</body></html>

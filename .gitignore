@@ -2,3 +2,9 @@
 venv/
 __pycache__/
 *.pyc
+data/chroma/
+data/chunks/
+data/raw/
+data/embeddings_preview.txt
+src/app_backup.py
+src/app_backup_before_new_ui.py
