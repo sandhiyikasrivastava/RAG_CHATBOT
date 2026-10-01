@@ -2,7 +2,10 @@
 
 from typing import List, Dict, Any
 import chromadb
-from src.config import CHROMA_DIR, COLLECTION_NAME, TOP_K
+try:
+    from config import CHROMA_DIR, COLLECTION_NAME, TOP_K
+except (ModuleNotFoundError, ImportError):
+    from src.config import CHROMA_DIR, COLLECTION_NAME, TOP_K
 from ingest.embedder import Embedder
 
 

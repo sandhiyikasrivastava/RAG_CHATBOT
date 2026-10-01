@@ -2,7 +2,7 @@ from sentence_transformers import SentenceTransformer
 
 try:
     from config import EMBEDDING_MODEL
-except ModuleNotFoundError:
+except (ModuleNotFoundError, ImportError):
     from src.config import EMBEDDING_MODEL
 
 

@@ -2,7 +2,10 @@
 
 from typing import List, Tuple, Optional
 import numpy as np
-from src.config import SIMILARITY_THRESHOLD
+try:
+    from config import SIMILARITY_THRESHOLD
+except (ModuleNotFoundError, ImportError):
+    from src.config import SIMILARITY_THRESHOLD
 from ingest.embedder import Embedder
 from query.llm import LLMClient
 
