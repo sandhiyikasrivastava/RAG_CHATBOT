@@ -2,7 +2,7 @@
 
 from typing import List, Tuple, Optional
 import numpy as np
-from config import SIMILARITY_THRESHOLD
+from src.config import SIMILARITY_THRESHOLD
 from ingest.embedder import Embedder
 from query.llm import LLMClient
 

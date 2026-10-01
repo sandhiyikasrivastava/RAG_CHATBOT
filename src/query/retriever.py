@@ -2,7 +2,7 @@
 
 from typing import List, Dict, Any
 import chromadb
-from config import CHROMA_DIR, COLLECTION_NAME, TOP_K
+from src.config import CHROMA_DIR, COLLECTION_NAME, TOP_K
 from ingest.embedder import Embedder
 
 
